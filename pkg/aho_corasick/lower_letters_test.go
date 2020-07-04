@@ -67,3 +67,36 @@ func TestLowerLetters_SearchClosed(t *testing.T) {
 	err = machine.Search(tmp, NewAsyncResults(10))
 	require.NoError(t, err)
 }
+
+type dummyResult struct {
+}
+
+func (d *dummyResult) Emit(out Output) {
+	// do nothing
+}
+func (d *dummyResult) Close() error {
+	// do nothing
+	return nil
+}
+
+func BenchmarkLowerLetters_Search(b *testing.B) {
+	machine, err := NewLowerLetters([]string{
+		"he",
+		"she",
+		"his",
+		"hers",
+	})
+	if err != nil {
+		b.Error(err)
+		return
+	}
+
+	input := bytes.Buffer{}
+	for i := 0; i < 10000; i++ {
+		input.WriteString("ushers")
+	}
+
+	for i := 0; i < b.N; i++ {
+		_ = machine.Search(&input, &dummyResult{})
+	}
+}
