@@ -4,14 +4,23 @@ Implements the Aho-Corasick algorithm as described in ["Efficient String Matchin
 
 # How to use it
 
+cd to the root of your go project (which is presumed to be using Go11 vendored modules), and execute the following:
+
+```bash
+go get github.com/wojnosystems/go-aho-corasick-search
+```
+
+Here's how you use it in your application.
+
 ```go
 package main
-import (
 
-"bytes"
-"fmt"
-"github.com/wojnosystems/go-aho-corasick-search/pkg/aho_corasick"
+import (
+  "bytes"
+  "fmt"
+  "github.com/wojnosystems/go-aho-corasick-search/pkg/aho_corasick"
 )
+
 func main() {
   stringsToFind := []string{
     "he",
@@ -31,9 +40,17 @@ func main() {
     if !ok {
       break
     }
-    fmt.Printf("Match! %s", stringsToFind[match.KeywordIndex])
+    fmt.Printf("Match! %s\n", stringsToFind[match.KeywordIndex])
   }
 }
+```
+
+This will output:
+
+```
+Match! she
+Match! he
+Match! hers
 ```
 
 # A bit about the algorithm
@@ -48,12 +65,13 @@ This implementation only supports the ASCII lower-case English letters: a - z fo
 
 ## Reusable State Machine
 
-Once you've created the state machine, you can run multiple searches on it using many different inputs. Search does not alter the state machine in any way and merely runs the search on it.
+Once you've created the state machine, you can run multiple searches on it using many different inputs. Search does not alter the state machine in any way and merely runs the search through it. That means, once built, the state machine is thread-safe.
 
 # Future Work
 
  * Eliminating the redundant Fail State transitions
  * Supporting runes using maps
+ * Augment output to include line count, column position, and character count
 
 # Inspiration
 
