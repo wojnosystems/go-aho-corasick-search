@@ -40,7 +40,7 @@ func TestSearch(t *testing.T) {
 	for caseName, c := range cases {
 		machine, err := NewLowerLetters(c.keywords)
 		require.NoError(t, err, caseName)
-		actuals := NewAsyncResults(10)
+		actuals := NewSyncResults(10)
 		err = machine.Search(bytes.NewBufferString(c.input), actuals)
 		require.NoError(t, err, caseName)
 		for _, output := range c.expectedOutputs {
@@ -64,7 +64,7 @@ func TestLowerLetters_SearchClosed(t *testing.T) {
 	require.NoError(t, err)
 	_ = tmp.Close()
 	defer func() { _ = os.Remove(tmp.Name()) }()
-	err = machine.Search(tmp, NewAsyncResults(10))
+	err = machine.Search(tmp, NewSyncResults(10))
 	require.NoError(t, err)
 }
 

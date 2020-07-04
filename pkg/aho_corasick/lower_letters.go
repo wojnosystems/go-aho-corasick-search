@@ -20,7 +20,7 @@ func NewLowerLetters(keyWords []string) (m LowerLetters, err error) {
 	if err != nil {
 		return m, err
 	}
-	m.states = buildFails(m.states, keyWords)
+	m.states = buildFails(m.states)
 	return m, err
 }
 
@@ -77,7 +77,7 @@ func isAscii(r uint8) bool {
 	return 'a' <= r && r <= 'z'
 }
 
-func buildFails(statesIn states, keywords []string) (states states) {
+func buildFails(statesIn states) (states states) {
 	states = statesIn
 	start := states[startState]
 	q := fifoInt{}

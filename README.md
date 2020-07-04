@@ -55,7 +55,7 @@ Match! hers
 
 # A bit about the algorithm
 
-This algorithm is useful for searching for multiple strings known _a priori_, within a large string, in near-linear time. The running time for this algorithm is O(n*z) where n is the number of characters to read during the search while `z = SUM(len(keyword[i]))` the sum of the lengths of all keywords. As long as your key words are both short and there aren't too many of them, this algorithm run in linear time.
+This algorithm is useful for searching for multiple strings known _a priori_, within a large string, in near-linear time. The running time for this algorithm is O(n*z) where n is the number of characters to read during the search while `z = SUM(len(keyword[i]))` the sum of the lengths of all keywords. As long as your key words are both short and there aren't too many of them, this algorithm runs in linear time.
 
 ## Where I departed from the algorithm
 
