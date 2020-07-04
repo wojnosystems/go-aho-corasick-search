@@ -3,6 +3,7 @@ package aho_corasick
 import (
 	"errors"
 	"io"
+	"os"
 )
 
 type LowerLetters struct {
@@ -112,12 +113,14 @@ func buildFails(statesIn states, keywords []string) (states states) {
 func (m LowerLetters) Search(input io.Reader, results ResultWriter) (err error) {
 	currentState := startState
 	letter := []byte{0}
+	defer func() {
+		_ = results.Close()
+	}()
 	for {
 		_, err = input.Read(letter)
 		if err != nil {
-			if errors.Is(err, io.EOF) {
+			if isEOFOrClosed(err) {
 				err = nil
-				break
 			}
 			return
 		}
@@ -134,6 +137,17 @@ func (m LowerLetters) Search(input io.Reader, results ResultWriter) (err error) 
 			}
 		}
 	}
-	_ = results.Close()
-	return
+}
+
+func isEOFOrClosed(err error) bool {
+	if errors.Is(err, io.EOF) ||
+		errors.Is(err, io.ErrClosedPipe) {
+		return true
+	}
+	if pathErr, ok := err.(*os.PathError); ok {
+		if pathErr.Err.Error() == "file already closed" {
+			return true
+		}
+	}
+	return false
 }

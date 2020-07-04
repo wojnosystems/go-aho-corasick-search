@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"io/ioutil"
+	"os"
 	"testing"
 )
 
@@ -14,8 +16,13 @@ func TestSearch(t *testing.T) {
 		expectedOutputs []Output
 	}{
 		"aho-corasick": {
-			keywords: []string{"he", "she", "his", "hers"},
-			input:    "ushers",
+			keywords: []string{
+				"he",
+				"she",
+				"his",
+				"hers",
+			},
+			input: "ushers",
 			expectedOutputs: []Output{
 				{
 					KeywordIndex: 1,
@@ -42,4 +49,21 @@ func TestSearch(t *testing.T) {
 			assert.Equal(t, output.KeywordIndex, actual.KeywordIndex, caseName)
 		}
 	}
+}
+
+// Test that the search algorithm ends properly when a stream is closed
+func TestLowerLetters_SearchClosed(t *testing.T) {
+	machine, err := NewLowerLetters([]string{
+		"he",
+		"she",
+		"his",
+		"hers",
+	})
+	require.NoError(t, err)
+	tmp, err := ioutil.TempFile("", "")
+	require.NoError(t, err)
+	_ = tmp.Close()
+	defer func() { _ = os.Remove(tmp.Name()) }()
+	err = machine.Search(tmp, NewAsyncResults(10))
+	require.NoError(t, err)
 }
