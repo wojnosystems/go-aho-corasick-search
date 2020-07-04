@@ -1,4 +1,4 @@
-package aho_corasick
+package fifo
 
 import (
 	"github.com/stretchr/testify/assert"
@@ -7,34 +7,34 @@ import (
 
 func TestFifoInt_IsEmpty(t *testing.T) {
 	cases := map[string]struct {
-		build    func() fifoInt
+		build    func() Int
 		expected bool
 	}{
 		"empty": {
-			build: func() fifoInt {
-				return fifoInt{}
+			build: func() Int {
+				return Int{}
 			},
 			expected: true,
 		},
 		"push": {
-			build: func() fifoInt {
-				f := fifoInt{}
+			build: func() Int {
+				f := Int{}
 				f.Push(2)
 				return f
 			},
 			expected: false,
 		},
 		"pop": {
-			build: func() fifoInt {
-				f := fifoInt{}
+			build: func() Int {
+				f := Int{}
 				f.Pop()
 				return f
 			},
 			expected: true,
 		},
 		"push-pop": {
-			build: func() fifoInt {
-				f := fifoInt{}
+			build: func() Int {
+				f := Int{}
 				f.Push(2)
 				f.Pop()
 				return f
@@ -55,20 +55,20 @@ func TestFifoInt_IsEmpty(t *testing.T) {
 
 func TestFifoInt_Peek(t *testing.T) {
 	cases := map[string]struct {
-		build         func() fifoInt
+		build         func() Int
 		expectedValue int
 		expected      bool
 	}{
 		"empty": {
-			build: func() fifoInt {
-				return fifoInt{}
+			build: func() Int {
+				return Int{}
 			},
 			expectedValue: -1,
 			expected:      false,
 		},
 		"push": {
-			build: func() fifoInt {
-				f := fifoInt{}
+			build: func() Int {
+				f := Int{}
 				f.Push(2)
 				return f
 			},
@@ -76,8 +76,8 @@ func TestFifoInt_Peek(t *testing.T) {
 			expected:      true,
 		},
 		"pop": {
-			build: func() fifoInt {
-				f := fifoInt{}
+			build: func() Int {
+				f := Int{}
 				f.Pop()
 				return f
 			},
@@ -85,8 +85,8 @@ func TestFifoInt_Peek(t *testing.T) {
 			expected:      false,
 		},
 		"push-pop": {
-			build: func() fifoInt {
-				f := fifoInt{}
+			build: func() Int {
+				f := Int{}
 				f.Push(2)
 				f.Pop()
 				return f
@@ -95,8 +95,8 @@ func TestFifoInt_Peek(t *testing.T) {
 			expected:      false,
 		},
 		"push-push-push": {
-			build: func() fifoInt {
-				f := fifoInt{}
+			build: func() Int {
+				f := Int{}
 				f.Push(2)
 				f.Push(3)
 				f.Push(4)
@@ -106,8 +106,8 @@ func TestFifoInt_Peek(t *testing.T) {
 			expected:      true,
 		},
 		"push-push-push-pop-pop": {
-			build: func() fifoInt {
-				f := fifoInt{}
+			build: func() Int {
+				f := Int{}
 				f.Push(2)
 				f.Push(3)
 				f.Push(4)

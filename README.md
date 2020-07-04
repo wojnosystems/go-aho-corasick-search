@@ -18,7 +18,8 @@ package main
 import (
   "bytes"
   "fmt"
-  "github.com/wojnosystems/go-aho-corasick-search/pkg/aho_corasick"
+  "github.com/wojnosystems/go-aho-corasick-search/ac_engines"
+  "github.com/wojnosystems/go-aho-corasick-search/result"
 )
 
 func main() {
@@ -28,8 +29,8 @@ func main() {
     "his",
     "hers",
   }  
-  stateMachine, _ := aho_corasick.NewLowerLetters(stringsToFind)
-  results := aho_corasick.NewAsyncResults(10)
+  stateMachine, _ := ac_engines.NewLowerLetters(stringsToFind)
+  results := result.NewAsync(10)
 
   input := bytes.NewBufferString("ushers")
   go func() {
@@ -52,6 +53,8 @@ Match! she
 Match! he
 Match! hers
 ```
+
+See `cmd/example/main.go` for the above example working.
 
 # A bit about the algorithm
 

@@ -1,7 +1,10 @@
-package aho_corasick
+package ac_engines
 
 import (
 	"errors"
+	"github.com/wojnosystems/go-aho-corasick-search"
+	"github.com/wojnosystems/go-aho-corasick-search/fifo"
+	"github.com/wojnosystems/go-aho-corasick-search/result"
 	"io"
 	"os"
 )
@@ -80,7 +83,7 @@ func isAscii(r uint8) bool {
 func buildFails(statesIn states) (states states) {
 	states = statesIn
 	start := states[startState]
-	q := fifoInt{}
+	q := fifo.Int{}
 	// initialize the states at depth 1
 	for _, state := range start.nextState {
 		if state != startState {
@@ -110,7 +113,7 @@ func buildFails(statesIn states) (states states) {
 	return
 }
 
-func (m LowerLetters) Search(input io.Reader, results ResultWriter) (err error) {
+func (m LowerLetters) Search(input io.Reader, results result.Writer) (err error) {
 	currentState := startState
 	letter := []byte{0}
 	defer func() {
@@ -131,7 +134,7 @@ func (m LowerLetters) Search(input io.Reader, results ResultWriter) (err error) 
 		currentState = m.states[currentState].nextState[letterIndex]
 		if m.states[currentState].hasOutput() {
 			for _, output := range m.states[currentState].outputs() {
-				results.Emit(Output{
+				results.Emit(aho_corasick_search.Output{
 					KeywordIndex: output,
 				})
 			}

@@ -1,4 +1,4 @@
-package aho_corasick
+package ac_engines
 
 type states []vertex
 

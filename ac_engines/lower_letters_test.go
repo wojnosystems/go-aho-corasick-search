@@ -1,9 +1,11 @@
-package aho_corasick
+package ac_engines
 
 import (
 	"bytes"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/wojnosystems/go-aho-corasick-search"
+	"github.com/wojnosystems/go-aho-corasick-search/result"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -13,7 +15,7 @@ func TestSearch(t *testing.T) {
 	cases := map[string]struct {
 		keywords        []string
 		input           string
-		expectedOutputs []Output
+		expectedOutputs []aho_corasick_search.Output
 	}{
 		"aho-corasick": {
 			keywords: []string{
@@ -23,7 +25,7 @@ func TestSearch(t *testing.T) {
 				"hers",
 			},
 			input: "ushers",
-			expectedOutputs: []Output{
+			expectedOutputs: []aho_corasick_search.Output{
 				{
 					KeywordIndex: 1,
 				},
@@ -40,7 +42,7 @@ func TestSearch(t *testing.T) {
 	for caseName, c := range cases {
 		machine, err := NewLowerLetters(c.keywords)
 		require.NoError(t, err, caseName)
-		actuals := NewSyncResults(10)
+		actuals := result.NewSync(10)
 		err = machine.Search(bytes.NewBufferString(c.input), actuals)
 		require.NoError(t, err, caseName)
 		for _, output := range c.expectedOutputs {
@@ -64,14 +66,15 @@ func TestLowerLetters_SearchClosed(t *testing.T) {
 	require.NoError(t, err)
 	_ = tmp.Close()
 	defer func() { _ = os.Remove(tmp.Name()) }()
-	err = machine.Search(tmp, NewSyncResults(10))
+	err = machine.Search(tmp, result.NewSync(10))
 	require.NoError(t, err)
 }
 
 type dummyResult struct {
 }
 
-func (d *dummyResult) Emit(out Output) {
+func (d *dummyResult) Emit(out aho_corasick_search.Output) {
+	_ = out
 	// do nothing
 }
 func (d *dummyResult) Close() error {
