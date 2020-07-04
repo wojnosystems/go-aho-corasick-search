@@ -1,5 +1,5 @@
 package aho_corasick
 
 type Output struct {
-	keywordIndex int
+	KeywordIndex int
 }

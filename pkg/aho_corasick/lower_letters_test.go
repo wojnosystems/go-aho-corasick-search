@@ -1,7 +1,9 @@
 package aho_corasick
 
 import (
+	"bytes"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"testing"
 )
 
@@ -16,23 +18,28 @@ func TestSearch(t *testing.T) {
 			input:    "ushers",
 			expectedOutputs: []Output{
 				{
-					keywordIndex: 1,
+					KeywordIndex: 1,
 				},
 				{
-					keywordIndex: 0,
+					KeywordIndex: 0,
 				},
 				{
-					keywordIndex: 3,
+					KeywordIndex: 3,
 				},
 			},
 		},
 	}
 
 	for caseName, c := range cases {
-		machine := New(c.keywords, 26)
-		actual := machine.Search(c.input)
-		for i, output := range c.expectedOutputs {
-			assert.Equal(t, output.keywordIndex, actual[i].keywordIndex, caseName)
+		machine, err := NewLowerLetters(c.keywords)
+		require.NoError(t, err, caseName)
+		actuals := NewAsyncResults(10)
+		err = machine.Search(bytes.NewBufferString(c.input), actuals)
+		require.NoError(t, err, caseName)
+		for _, output := range c.expectedOutputs {
+			actual, ok := actuals.Next()
+			assert.True(t, ok, caseName)
+			assert.Equal(t, output.KeywordIndex, actual.KeywordIndex, caseName)
 		}
 	}
 }

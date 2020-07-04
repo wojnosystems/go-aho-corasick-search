@@ -1,5 +1,10 @@
 package aho_corasick
 
+const (
+	startState   = 0
+	invalidState = -1
+)
+
 type vertex struct {
 	nextState []int
 	failState int
@@ -12,15 +17,27 @@ func newVertex(numberOfStates int) vertex {
 		failState: -1,
 		output:    nil,
 	}
+	// By default, all states are invalid
 	for i := range v.nextState {
-		v.nextState[i] = -1
+		v.nextState[i] = invalidState
 	}
 	return v
 }
 
-func (v *vertex) addOutputIndex(i int) {
+func (v *vertex) appendOutputIndex(i []int) {
 	if v.output == nil {
 		v.output = make([]int, 0, 5)
 	}
-	v.output = append(v.output, i)
+	v.output = append(v.output, i...)
+}
+
+func (v *vertex) outputs() []int {
+	if v.output == nil {
+		return make([]int, 0, 0)
+	}
+	return v.output
+}
+
+func (v vertex) hasOutput() bool {
+	return v.output != nil && len(v.output) != 0
 }
