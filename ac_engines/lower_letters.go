@@ -54,7 +54,7 @@ func addKeywordToTrie(statesIn states, keywordIndex int, keyword string) (states
 	letterIndex := 0
 	for ; letterIndex < len(keyword); letterIndex++ {
 		letter := keyword[letterIndex]
-		if !isAscii(letter) {
+		if !isLowerAscii(letter) {
 			return states, newInvalidCharsetError(rune(letter))
 		}
 		letterStateIndex := letter - 'a'
@@ -76,7 +76,7 @@ func addKeywordToTrie(statesIn states, keywordIndex int, keyword string) (states
 	return
 }
 
-func isAscii(r uint8) bool {
+func isLowerAscii(r uint8) bool {
 	return 'a' <= r && r <= 'z'
 }
 
