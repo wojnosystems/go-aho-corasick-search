@@ -1,4 +1,4 @@
-package fifo
+package ac_engines
 
 import (
 	"github.com/stretchr/testify/assert"
@@ -7,37 +7,34 @@ import (
 
 func TestFifoInt_IsEmpty(t *testing.T) {
 	cases := map[string]struct {
-		build    func() Int
+		build    func() stateFifo
 		expected bool
 	}{
 		"empty": {
-			build: func() Int {
-				return Int{}
+			build: func() (f stateFifo) {
+				return
 			},
 			expected: true,
 		},
 		"push": {
-			build: func() Int {
-				f := Int{}
+			build: func() (f stateFifo) {
 				f.Push(2)
-				return f
+				return
 			},
 			expected: false,
 		},
 		"pop": {
-			build: func() Int {
-				f := Int{}
+			build: func() (f stateFifo) {
 				f.Pop()
-				return f
+				return
 			},
 			expected: true,
 		},
 		"push-pop": {
-			build: func() Int {
-				f := Int{}
+			build: func() (f stateFifo) {
 				f.Push(2)
 				f.Pop()
-				return f
+				return
 			},
 			expected: true,
 		},
@@ -55,67 +52,62 @@ func TestFifoInt_IsEmpty(t *testing.T) {
 
 func TestFifoInt_Peek(t *testing.T) {
 	cases := map[string]struct {
-		build         func() Int
-		expectedValue int
+		build         func() stateFifo
+		expectedValue stateIndex
 		expected      bool
 	}{
 		"empty": {
-			build: func() Int {
-				return Int{}
+			build: func() (f stateFifo) {
+				return
 			},
-			expectedValue: -1,
+			expectedValue: stateIndex(-1),
 			expected:      false,
 		},
 		"push": {
-			build: func() Int {
-				f := Int{}
+			build: func() (f stateFifo) {
 				f.Push(2)
 				return f
 			},
-			expectedValue: 2,
+			expectedValue: stateIndex(2),
 			expected:      true,
 		},
 		"pop": {
-			build: func() Int {
-				f := Int{}
+			build: func() (f stateFifo) {
 				f.Pop()
-				return f
+				return
 			},
-			expectedValue: -1,
+			expectedValue: stateIndex(-1),
 			expected:      false,
 		},
 		"push-pop": {
-			build: func() Int {
-				f := Int{}
+			build: func() (f stateFifo) {
 				f.Push(2)
 				f.Pop()
-				return f
+				return
 			},
-			expectedValue: -1,
+			expectedValue: stateIndex(-1),
 			expected:      false,
 		},
 		"push-push-push": {
-			build: func() Int {
-				f := Int{}
+			build: func() (f stateFifo) {
 				f.Push(2)
 				f.Push(3)
 				f.Push(4)
-				return f
+				return
 			},
-			expectedValue: 2,
+			expectedValue: stateIndex(2),
 			expected:      true,
 		},
 		"push-push-push-pop-pop": {
-			build: func() Int {
-				f := Int{}
+			build: func() (f stateFifo) {
 				f.Push(2)
 				f.Push(3)
 				f.Push(4)
 				f.Pop()
 				f.Pop()
-				return f
+				return
 			},
-			expectedValue: 4,
+			expectedValue: stateIndex(4),
 			expected:      true,
 		},
 	}

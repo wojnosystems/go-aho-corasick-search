@@ -29,7 +29,7 @@ func NewLowerLetters(keyWords []string) (m LowerLetters, err error) {
 // buildTrie AKA the goto function
 func buildTrie(keyWords []string) (states states, err error) {
 	states = newStates()
-	start := newVertex(letterStates)
+	start := newVertexDense(letterStates)
 	states = append(states, start)
 	for keywordIndex, word := range keyWords {
 		states, err = addKeywordToTrie(states, keywordIndex, word)
@@ -39,11 +39,7 @@ func buildTrie(keyWords []string) (states states, err error) {
 	}
 
 	// Set all of the start Tries that don't match back to the start
-	for stateIndex, state := range start.nextState {
-		if state == invalidState {
-			start.nextState[stateIndex] = startState
-		}
-	}
+	start.setInvalidEdgesTo(startState)
 	return
 }
 
@@ -57,7 +53,7 @@ func addKeywordToTrie(statesIn states, keywordIndex int, keyword string) (states
 			return states, newInvalidCharsetError(rune(letter))
 		}
 		letterStateIndex := letter - 'a'
-		nextState := states[currentState].nextState[letterStateIndex]
+		nextState := states[currentState].nextState(int64(letterStateIndex))
 		if nextState == invalidState {
 			break
 		}
@@ -66,8 +62,8 @@ func addKeywordToTrie(statesIn states, keywordIndex int, keyword string) (states
 	for ; letterIndex < len(keyword); letterIndex++ {
 		letter := keyword[letterIndex]
 		letterStateIndex := letter - 'a'
-		v := newVertex(letterStates)
-		states[currentState].nextState[letterStateIndex] = lastStateIndex(states)
+		v := newVertexDense(letterStates)
+		states[currentState].setNextState(int64(letterStateIndex), lastStateIndex(states))
 		currentState = lastStateIndex(states)
 		states = append(states, v)
 	}
@@ -84,7 +80,7 @@ func buildFails(statesIn states) (states states) {
 	start := states[startState]
 	q := stateFifo{}
 	// initialize the states at depth 1
-	for _, state := range start.nextState {
+	for _, state := range start.edges {
 		if state != startState {
 			// All failure states at depth 1 go back to the start state
 			states[state].failState = startState
@@ -95,16 +91,16 @@ func buildFails(statesIn states) (states states) {
 	for !q.IsEmpty() {
 		statePreviousDepth, _ := q.Peek()
 		q.Pop()
-		for letterIndex, s := range states[statePreviousDepth].nextState {
+		for letterIndex, s := range states[statePreviousDepth].edges {
 			if s != invalidState {
 				q.Push(s)
 				state := states[statePreviousDepth].failState
-				for states[state].nextState[letterIndex] == invalidState {
+				for states[state].nextState(int64(letterIndex)) == invalidState {
 					state = states[state].failState
 				}
 				// Found a failState that is not invalid
 				// set the nextState fail state to the entry for this letter
-				states[s].failState = states[state].nextState[letterIndex]
+				states[s].failState = states[state].nextState(int64(letterIndex))
 				states[s].appendOutputIndex(states[states[s].failState].output)
 			}
 		}
@@ -127,10 +123,10 @@ func (m LowerLetters) Search(input io.Reader, results result.Writer) (err error)
 			return
 		}
 		letterIndex := letter[0] - 'a'
-		for m.states[currentState].nextState[letterIndex] == invalidState {
+		for m.states[currentState].nextState(int64(letterIndex)) == invalidState {
 			currentState = m.states[currentState].failState
 		}
-		currentState = m.states[currentState].nextState[letterIndex]
+		currentState = m.states[currentState].nextState(int64(letterIndex))
 		if m.states[currentState].hasOutput() {
 			for _, output := range m.states[currentState].outputs() {
 				results.Emit(aho_corasick_search.Output{

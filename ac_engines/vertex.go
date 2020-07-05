@@ -1,22 +1,19 @@
 package ac_engines
 
 type vertex struct {
-	nextState []stateIndex
 	failState stateIndex
 	output    []int
 }
 
-func newVertex(numberOfStates int) vertex {
-	v := vertex{
-		nextState: make([]stateIndex, numberOfStates),
-		failState: -1,
+func newVertex() vertex {
+	return vertex{
+		failState: invalidState,
 		output:    nil,
 	}
-	// By default, all states are invalid
-	for i := range v.nextState {
-		v.nextState[i] = invalidState
-	}
-	return v
+}
+
+func (v *vertex) setFailState(state stateIndex) {
+	v.failState = state
 }
 
 func (v *vertex) appendOutputIndex(i []int) {
