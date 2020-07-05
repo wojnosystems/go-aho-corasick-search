@@ -12,7 +12,7 @@ import (
 	"testing"
 )
 
-func TestLowerLetters_Search(t *testing.T) {
+func TestRunes_Search(t *testing.T) {
 	cases := map[string]struct {
 		keywords        []string
 		input           string
@@ -41,7 +41,7 @@ func TestLowerLetters_Search(t *testing.T) {
 	}
 
 	for caseName, c := range cases {
-		machine, err := NewLowerLetters(c.keywords)
+		machine, err := NewRunes(c.keywords)
 		require.NoError(t, err, caseName)
 		actuals := result.NewSync(10)
 		err = machine.Search(bytes.NewBufferString(c.input), actuals)
@@ -55,8 +55,8 @@ func TestLowerLetters_Search(t *testing.T) {
 }
 
 // Test that the search algorithm ends properly when a stream is closed
-func TestLowerLetters_SearchClosed(t *testing.T) {
-	machine, err := NewLowerLetters([]string{
+func TestRunes_SearchClosed(t *testing.T) {
+	machine, err := NewRunes([]string{
 		"he",
 		"she",
 		"his",
@@ -71,20 +71,8 @@ func TestLowerLetters_SearchClosed(t *testing.T) {
 	require.NoError(t, err)
 }
 
-type dummyResult struct {
-}
-
-func (d *dummyResult) Emit(out aho_corasick_search.Output) {
-	_ = out
-	// do nothing
-}
-func (d *dummyResult) Close() error {
-	// do nothing
-	return nil
-}
-
-func BenchmarkLowerLetters_Search(b *testing.B) {
-	machine, err := NewLowerLetters([]string{
+func BenchmarkRunes_Search(b *testing.B) {
+	machine, err := NewRunes([]string{
 		"he",
 		"she",
 		"his",
