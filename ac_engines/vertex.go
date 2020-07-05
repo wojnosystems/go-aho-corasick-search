@@ -1,19 +1,14 @@
 package ac_engines
 
-const (
-	startState   = 0
-	invalidState = -1
-)
-
 type vertex struct {
-	nextState []int
-	failState int
+	nextState []stateIndex
+	failState stateIndex
 	output    []int
 }
 
 func newVertex(numberOfStates int) vertex {
 	v := vertex{
-		nextState: make([]int, numberOfStates),
+		nextState: make([]stateIndex, numberOfStates),
 		failState: -1,
 		output:    nil,
 	}

@@ -3,7 +3,6 @@ package ac_engines
 import (
 	"errors"
 	"github.com/wojnosystems/go-aho-corasick-search"
-	"github.com/wojnosystems/go-aho-corasick-search/fifo"
 	"github.com/wojnosystems/go-aho-corasick-search/result"
 	"io"
 	"os"
@@ -50,7 +49,7 @@ func buildTrie(keyWords []string) (states states, err error) {
 
 func addKeywordToTrie(statesIn states, keywordIndex int, keyword string) (states states, err error) {
 	states = statesIn
-	currentState := 0
+	currentState := startState
 	letterIndex := 0
 	for ; letterIndex < len(keyword); letterIndex++ {
 		letter := keyword[letterIndex]
@@ -68,8 +67,8 @@ func addKeywordToTrie(statesIn states, keywordIndex int, keyword string) (states
 		letter := keyword[letterIndex]
 		letterStateIndex := letter - 'a'
 		v := newVertex(letterStates)
-		states[currentState].nextState[letterStateIndex] = len(states)
-		currentState = len(states)
+		states[currentState].nextState[letterStateIndex] = lastStateIndex(states)
+		currentState = lastStateIndex(states)
 		states = append(states, v)
 	}
 	states[currentState].appendOutputIndex([]int{keywordIndex})
@@ -83,7 +82,7 @@ func isLowerAscii(r uint8) bool {
 func buildFails(statesIn states) (states states) {
 	states = statesIn
 	start := states[startState]
-	q := fifo.Int{}
+	q := stateFifo{}
 	// initialize the states at depth 1
 	for _, state := range start.nextState {
 		if state != startState {
