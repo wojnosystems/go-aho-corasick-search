@@ -110,6 +110,7 @@ func buildDenseFails(statesIn denseStates) (states denseStates) {
 }
 
 func (m LowerLetters) Search(input io.Reader, results result.Writer) (err error) {
+	var bytesReadSoFar uint64
 	currentState := startState
 	letter := []byte{0}
 	defer func() {
@@ -123,6 +124,7 @@ func (m LowerLetters) Search(input io.Reader, results result.Writer) (err error)
 			}
 			return
 		}
+		bytesReadSoFar++
 		letterIndex := letter[0] - 'a'
 		_, ok := m.states[currentState].nextState(int64(letterIndex))
 		for !ok {
@@ -133,7 +135,9 @@ func (m LowerLetters) Search(input io.Reader, results result.Writer) (err error)
 		if m.states[currentState].hasOutput() {
 			for _, output := range m.states[currentState].outputs() {
 				results.Emit(aho_corasick_search.Output{
-					KeywordIndex: output,
+					KeywordIndex:    output,
+					ByteOffset:      bytesReadSoFar,
+					CharacterOffset: bytesReadSoFar,
 				})
 			}
 		}

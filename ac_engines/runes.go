@@ -41,8 +41,9 @@ func addKeywordToSparseTrie(statesIn sparseStates, keywordIndex int, keyword str
 	states = statesIn
 	currentState := startState
 	letterIndex := 0
-	for ; letterIndex < len(keyword); letterIndex++ {
-		letter := keyword[letterIndex]
+	keywordRunes := []rune(keyword)
+	for ; letterIndex < len(keywordRunes); letterIndex++ {
+		letter := keywordRunes[letterIndex]
 		letterStateIndex := letter
 		nextState, ok := states[currentState].nextState(int64(letterStateIndex))
 		if !ok {
@@ -50,8 +51,8 @@ func addKeywordToSparseTrie(statesIn sparseStates, keywordIndex int, keyword str
 		}
 		currentState = nextState
 	}
-	for ; letterIndex < len(keyword); letterIndex++ {
-		letter := keyword[letterIndex]
+	for ; letterIndex < len(keywordRunes); letterIndex++ {
+		letter := keywordRunes[letterIndex]
 		letterStateIndex := letter
 		v := newVertexSparse(letterStates)
 		states[currentState].setNextState(int64(letterStateIndex), states.lastStateIndex())
@@ -95,6 +96,9 @@ func buildSparseFails(statesIn sparseStates) (states sparseStates) {
 }
 
 func (m Runes) Search(input io.Reader, results result.Writer) (err error) {
+	var bytesReadSoFar uint64
+	var bytesReadThisRune int
+	var runesReadSoFar uint64
 	bufReader := bufio.NewReader(input)
 	currentState := startState
 	var letter rune
@@ -102,13 +106,15 @@ func (m Runes) Search(input io.Reader, results result.Writer) (err error) {
 		_ = results.Close()
 	}()
 	for {
-		letter, _, err = bufReader.ReadRune()
+		letter, bytesReadThisRune, err = bufReader.ReadRune()
 		if err != nil {
 			if isEOFOrClosed(err) {
 				err = nil
 			}
 			return
 		}
+		bytesReadSoFar += uint64(bytesReadThisRune)
+		runesReadSoFar++
 		letterIndex := letter
 		_, ok := m.states[currentState].nextState(int64(letterIndex))
 		for !ok {
@@ -119,7 +125,9 @@ func (m Runes) Search(input io.Reader, results result.Writer) (err error) {
 		if m.states[currentState].hasOutput() {
 			for _, output := range m.states[currentState].outputs() {
 				results.Emit(aho_corasick_search.Output{
-					KeywordIndex: output,
+					KeywordIndex:    output,
+					CharacterOffset: runesReadSoFar,
+					ByteOffset:      bytesReadSoFar,
 				})
 			}
 		}

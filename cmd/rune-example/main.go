@@ -5,19 +5,20 @@ import (
 	"fmt"
 	"github.com/wojnosystems/go-aho-corasick-search/ac_engines"
 	"github.com/wojnosystems/go-aho-corasick-search/result"
+	"unicode/utf8"
 )
 
 func main() {
 	stringsToFind := []string{
-		"he",
-		"she",
+		"hの",
+		"shの",
 		"his",
-		"hers",
+		"hのrs",
 	}
 	stateMachine, _ := ac_engines.NewRunes(stringsToFind)
 	results := result.NewAsync(10)
 
-	input := bytes.NewBufferString("ushers")
+	input := bytes.NewBufferString("ushのrs")
 	go func() {
 		_ = stateMachine.Search(input, results)
 	}()
@@ -26,6 +27,10 @@ func main() {
 		if !ok {
 			break
 		}
-		fmt.Printf("Match! %s\n", stringsToFind[match.KeywordIndex])
+		word := stringsToFind[match.KeywordIndex]
+		fmt.Printf("Match! %s @ b:%d c:%d\n",
+			word,
+			match.ByteOffset-uint64(len(word)),
+			match.CharacterOffset-uint64(utf8.RuneCountInString(word)))
 	}
 }

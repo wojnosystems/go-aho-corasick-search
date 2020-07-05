@@ -38,6 +38,26 @@ func TestRunes_Search(t *testing.T) {
 				},
 			},
 		},
+		"aho-corasick with unicode": {
+			keywords: []string{
+				"hの",
+				"shの",
+				"his",
+				"hのrs",
+			},
+			input: "ushのrs",
+			expectedOutputs: []aho_corasick_search.Output{
+				{
+					KeywordIndex: 1,
+				},
+				{
+					KeywordIndex: 0,
+				},
+				{
+					KeywordIndex: 3,
+				},
+			},
+		},
 	}
 
 	for caseName, c := range cases {
