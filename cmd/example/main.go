@@ -15,9 +15,12 @@ func main() {
 		"his",
 		"hers",
 	}
-	stateMachine, _ := ac_engines.NewLowerLetters(stringsToFind)
+	stateMachineBuilder := ac_engines.NewLowerLetters()
+	for _, s := range stringsToFind {
+		_ = stateMachineBuilder.AddKeyword(s)
+	}
+	stateMachine := stateMachineBuilder.Build()
 	results := result.NewAsync(10)
-
 	input := bytes.NewBufferString("ushers")
 	go func() {
 		_ = stateMachine.Search(input, results)

@@ -12,34 +12,37 @@ type LowerLetters struct {
 	states denseStates
 }
 
+type LowerLettersBuilder struct {
+	states        denseStates
+	keywordsSoFar int
+}
+
 const (
 	letterStates = 26
 )
 
-func NewLowerLetters(keyWords []string) (m LowerLetters, err error) {
-	m = LowerLetters{}
-	m.states, err = buildDenseTrie(keyWords)
-	if err != nil {
-		return m, err
-	}
-	m.states = buildDenseFails(m.states)
-	return m, err
+func NewLowerLetters() (m LowerLettersBuilder) {
+	m = LowerLettersBuilder{}
+	m.states = newDenseStates()
+	m.states = append(m.states, newVertexDense(letterStates))
+	return
 }
 
-// buildTrie AKA the goto function
-func buildDenseTrie(keyWords []string) (states denseStates, err error) {
-	states = newDenseStates()
-	states = append(states, newVertexDense(letterStates))
-	for keywordIndex, word := range keyWords {
-		states, err = addKeywordToDenseTrie(states, keywordIndex, word)
-		if err != nil {
-			return
-		}
-	}
-
-	// Set all of the start Tries that don't match back to the start
-	states[startState].setInvalidEdgesTo(startState)
+func (m *LowerLettersBuilder) AddKeyword(keyword string) (err error) {
+	m.states, err = addKeywordToDenseTrie(m.states, m.keywordsSoFar, keyword)
+	m.keywordsSoFar++
 	return
+}
+
+func (m *LowerLettersBuilder) Build() LowerLetters {
+	l := LowerLetters{
+		states: m.states,
+	}
+	m.states = nil
+	// Set all of the start Tries that don't match back to the start
+	l.states[startState].setInvalidEdgesTo(startState)
+	l.states = buildDenseFails(l.states)
+	return l
 }
 
 func addKeywordToDenseTrie(statesIn denseStates, keywordIndex int, keyword string) (states denseStates, err error) {

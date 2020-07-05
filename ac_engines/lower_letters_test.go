@@ -41,10 +41,13 @@ func TestLowerLetters_Search(t *testing.T) {
 	}
 
 	for caseName, c := range cases {
-		machine, err := NewLowerLetters(c.keywords)
-		require.NoError(t, err, caseName)
+		machineBuilder := NewLowerLetters()
+		for _, keyword := range c.keywords {
+			err := machineBuilder.AddKeyword(keyword)
+			require.NoError(t, err, caseName)
+		}
 		actuals := result.NewSync(10)
-		err = machine.Search(bytes.NewBufferString(c.input), actuals)
+		err := machineBuilder.Build().Search(bytes.NewBufferString(c.input), actuals)
 		require.NoError(t, err, caseName)
 		for _, output := range c.expectedOutputs {
 			actual, ok := actuals.Next()
@@ -56,18 +59,21 @@ func TestLowerLetters_Search(t *testing.T) {
 
 // Test that the search algorithm ends properly when a stream is closed
 func TestLowerLetters_SearchClosed(t *testing.T) {
-	machine, err := NewLowerLetters([]string{
+	machineBuilder := NewLowerLetters()
+	for _, s := range []string{
 		"he",
 		"she",
 		"his",
 		"hers",
-	})
-	require.NoError(t, err)
+	} {
+		err := machineBuilder.AddKeyword(s)
+		require.NoError(t, err)
+	}
 	tmp, err := ioutil.TempFile("", "")
 	require.NoError(t, err)
 	_ = tmp.Close()
 	defer func() { _ = os.Remove(tmp.Name()) }()
-	err = machine.Search(tmp, result.NewSync(10))
+	err = machineBuilder.Build().Search(tmp, result.NewSync(10))
 	require.NoError(t, err)
 }
 
@@ -84,16 +90,20 @@ func (d *dummyResult) Close() error {
 }
 
 func BenchmarkLowerLetters_Search(b *testing.B) {
-	machine, err := NewLowerLetters([]string{
+	machineBuilder := NewLowerLetters()
+	for _, s := range []string{
 		"he",
 		"she",
 		"his",
 		"hers",
-	})
-	if err != nil {
-		b.Error(err)
-		return
+	} {
+		err := machineBuilder.AddKeyword(s)
+		if err != nil {
+			b.Error(err)
+			return
+		}
 	}
+	machine := machineBuilder.Build()
 
 	inputBuf := bytes.Buffer{}
 	for i := 0; i < 10000; i++ {

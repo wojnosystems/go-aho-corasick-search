@@ -61,10 +61,13 @@ func TestRunes_Search(t *testing.T) {
 	}
 
 	for caseName, c := range cases {
-		machine, err := NewRunes(c.keywords)
-		require.NoError(t, err, caseName)
+		machineBuilder := NewRunes()
+		for _, keyword := range c.keywords {
+			err := machineBuilder.AddKeyword(keyword)
+			require.NoError(t, err, caseName)
+		}
 		actuals := result.NewSync(10)
-		err = machine.Search(bytes.NewBufferString(c.input), actuals)
+		err := machineBuilder.Build().Search(bytes.NewBufferString(c.input), actuals)
 		require.NoError(t, err, caseName)
 		for _, output := range c.expectedOutputs {
 			actual, ok := actuals.Next()
@@ -76,32 +79,40 @@ func TestRunes_Search(t *testing.T) {
 
 // Test that the search algorithm ends properly when a stream is closed
 func TestRunes_SearchClosed(t *testing.T) {
-	machine, err := NewRunes([]string{
+	machineBuilder := NewRunes()
+	for _, s := range []string{
 		"he",
 		"she",
 		"his",
 		"hers",
-	})
-	require.NoError(t, err)
+	} {
+		err := machineBuilder.AddKeyword(s)
+		require.NoError(t, err)
+	}
 	tmp, err := ioutil.TempFile("", "")
 	require.NoError(t, err)
 	_ = tmp.Close()
 	defer func() { _ = os.Remove(tmp.Name()) }()
-	err = machine.Search(tmp, result.NewSync(10))
+	err = machineBuilder.Build().Search(tmp, result.NewSync(10))
 	require.NoError(t, err)
 }
 
 func BenchmarkRunes_Search(b *testing.B) {
-	machine, err := NewRunes([]string{
+	machineBuilder := NewRunes()
+	for _, s := range []string{
 		"he",
 		"she",
 		"his",
 		"hers",
-	})
-	if err != nil {
-		b.Error(err)
-		return
+	} {
+		err := machineBuilder.AddKeyword(s)
+		if err != nil {
+			b.Error(err)
+			return
+		}
 	}
+
+	machine := machineBuilder.Build()
 
 	inputBuf := bytes.Buffer{}
 	for i := 0; i < 10000; i++ {

@@ -11,30 +11,32 @@ type Runes struct {
 	states sparseStates
 }
 
-func NewRunes(keyWords []string) (m Runes, err error) {
-	m = Runes{}
-	m.states, err = buildSparseTrie(keyWords)
-	if err != nil {
-		return m, err
-	}
-	m.states = buildSparseFails(m.states)
-	return m, err
+type RunesBuilder struct {
+	states        sparseStates
+	keywordsSoFar int
 }
 
-// buildTrie AKA the goto function
-func buildSparseTrie(keyWords []string) (states sparseStates, err error) {
-	states = newSparseStates()
-	states = append(states, newVertexSparse(letterStates))
-	for keywordIndex, word := range keyWords {
-		states, err = addKeywordToSparseTrie(states, keywordIndex, word)
-		if err != nil {
-			return
-		}
-	}
-
-	// Set all of the start Tries that don't match back to the start
-	states[startState].setInvalidEdgesTo(startState)
+func NewRunes() (m RunesBuilder) {
+	m = RunesBuilder{}
+	m.states = newSparseStates()
+	m.states = append(m.states, newVertexSparse(letterStates))
 	return
+}
+
+func (m *RunesBuilder) AddKeyword(keyword string) (err error) {
+	m.states, err = addKeywordToSparseTrie(m.states, m.keywordsSoFar, keyword)
+	m.keywordsSoFar++
+	return
+}
+
+func (m *RunesBuilder) Build() Runes {
+	r := Runes{
+		states: m.states,
+	}
+	m.states = nil
+	r.states[startState].setInvalidEdgesTo(startState)
+	r.states = buildSparseFails(r.states)
+	return r
 }
 
 func addKeywordToSparseTrie(statesIn sparseStates, keywordIndex int, keyword string) (states sparseStates, err error) {
