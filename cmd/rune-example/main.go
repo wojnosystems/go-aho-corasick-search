@@ -31,6 +31,11 @@ func main() {
 	results := result.NewAsync(10)
 	go func() {
 		// Perform the search, use a Go-Routine in case your input comes from a buffered source, like a file or socket
+		// You don't have to use a Go-Routine, you can parse these results without it.
+		// In that case, either ensure that your bufferSize is set to the maximum number of matches (which you'd have to
+		// know before hand) or use the result.NewSync buffer, which is just an ever-expanding slice of values.
+		// When using result.NewAsync, the buffer is a channel, which means Search will stop processing once the channel
+		// is filled with results. Another Go-Routine, like we have below, will need to read the results at that point.
 		_ = stateMachine.Search(input, results)
 	}()
 	for {
