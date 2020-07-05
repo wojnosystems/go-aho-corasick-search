@@ -91,12 +91,6 @@ func buildSparseFails(statesIn sparseStates) (states sparseStates) {
 			states[s].appendOutputIndex(states[states[s].failState].output)
 		}
 	}
-
-	// All failure states at depth 1 go back to the start state
-	for _, state := range start.edges {
-		states[state].setInvalidEdgesTo(startState)
-	}
-
 	return
 }
 

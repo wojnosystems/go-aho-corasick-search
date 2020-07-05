@@ -16,33 +16,33 @@ Here's how you use it in your application.
 package main
 
 import (
-  "bytes"
-  "fmt"
-  "github.com/wojnosystems/go-aho-corasick-search/ac_engines"
-  "github.com/wojnosystems/go-aho-corasick-search/result"
+	"bytes"
+	"fmt"
+	"github.com/wojnosystems/go-aho-corasick-search/ac_engines"
+	"github.com/wojnosystems/go-aho-corasick-search/result"
 )
 
 func main() {
-  stringsToFind := []string{
-    "he",
-    "she",
-    "his",
-    "hers",
-  }  
-  stateMachine, _ := ac_engines.NewLowerLetters(stringsToFind)
-  results := result.NewAsync(10)
+	stringsToFind := []string{
+		"he",
+		"she",
+		"his",
+		"hers",
+	}
+	stateMachine, _ := ac_engines.NewRunes(stringsToFind)
+	results := result.NewAsync(10)
 
-  input := bytes.NewBufferString("ushers")
-  go func() {
-    _ = stateMachine.Search( input, results)
-  }()
-  for {
-    match, ok := results.Next()
-    if !ok {
-      break
-    }
-    fmt.Printf("Match! %s\n", stringsToFind[match.KeywordIndex])
-  }
+	input := bytes.NewBufferString("ushers")
+	go func() {
+		_ = stateMachine.Search(input, results)
+	}()
+	for {
+		match, ok := results.Next()
+		if !ok {
+			break
+		}
+		fmt.Printf("Match! %s\n", stringsToFind[match.KeywordIndex])
+	}
 }
 ```
 
@@ -54,7 +54,7 @@ Match! he
 Match! hers
 ```
 
-See `cmd/example/main.go` for the above example working.
+See `cmd/rune-example/main.go` for the above example working.
 
 # A bit about the algorithm
 
@@ -64,16 +64,19 @@ This algorithm is useful for searching for multiple strings known _a priori_, wi
 
 This implementation does not eliminate the redundant failure transitions as described in Section 6. However, this does implement this algorithm using a stream processor and GoLang's pattern of emitting data through a channel, thus allowing Search to be run in a Go Routine, while the output processing code is able to process in the main routine, pausing only while matches are still being found. This reduces the amount of time waiting for I/O.
 
-This implementation only supports the ASCII lower-case English letters: a - z for simplicity (and because the HackerRank question only dealt with this range). This could be, somewhat easily, adjusted to support full rune-scanning by replacing the slices of states with maps of states. However, maps are not free. The memory complexity of this implementation would grow much larger and run a bit more slowly.
+## ASCII-only Processing
+
+The implementation "LowerLetters" only supports the ASCII lower-case English letters: a - z for simplicity (and because the HackerRank question only dealt with this range). This implementation using a vertexDense, where in each set of next states is a simple slice of states to transition to next or -1 (invalidState) if it is unset.
+
+The Runes implementation improves upon this simple design by replacing character bytes with runes (int32). Instead of using flat arrays, which would take up a large amount of memory because to the search space size for all runes (2^32), this implementation using maps in the vertexSparse struct. However, maps are not free. The memory complexity of this implementation would grow much larger and run a bit more slowly.
 
 ## Reusable State Machine
 
-Once you've created the state machine, you can run multiple searches on it using many different inputs. Search does not alter the state machine in any way and merely runs the search through it. That means, once built, the state machine is thread-safe.
+Once you've created the state machine, you can run multiple searches on it using many different inputs. Search does not alter the state machine in any way and merely runs the search through it. That means, once built (call to NewLowerLetters or NewRunes), the state machine is thread-safe and running multiple Searches at the same time is perfectly OK.
 
 # Future Work
 
  * Eliminating the redundant Fail State transitions
- * Supporting runes using maps
  * Augment output to include line count, column position, and character count
 
 # Inspiration
